@@ -110,11 +110,25 @@ type rtuSerialTransporter struct {
 	serialPort
 }
 
+// FlushReceiveBuffer reads and discards all the data from the receive buffer.
+func (mb *rtuSerialTransporter) FlushReceiveBuffer() error {
+	var data [rtuMaxSize]byte
+	if _, err := io.ReadFull(mb.port, data[:]) ; err != nil {
+		return nil
+	}
+
+	return nil
+}
+
 func (mb *rtuSerialTransporter) Send(aduRequest []byte) (aduResponse []byte, err error) {
 	// Make sure port is connected
 	if err = mb.serialPort.connect(); err != nil {
 		return
 	}
+
+	//Flush the buffer
+	mb.FlushReceiveBuffer()
+
 	// Start the timer to close when idle
 	mb.serialPort.lastActivity = time.Now()
 	mb.serialPort.startCloseTimer()
